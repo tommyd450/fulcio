@@ -13,31 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM golang:1.21.3@sha256:4d5cf6cb9269c5867ccf86b8282897b7eb4764d9739b1a19d8cc68643bbc3f3c AS builder
+FROM registry.access.redhat.com/ubi9/go-toolset@sha256:c3a9c5c7fb226f6efcec2424dd30c38f652156040b490c9eca5ac5b61d8dc3ca AS builder
 ENV APP_ROOT=/opt/app-root
 ENV GOPATH=$APP_ROOT
 
 WORKDIR $APP_ROOT/src/
 ADD go.mod go.sum $APP_ROOT/src/
-RUN go mod download
-
 # Add source code
 ADD ./ $APP_ROOT/src/
 
-RUN go build -o server main.go
-RUN CGO_ENABLED=1 go build -gcflags "all=-N -l" -o server_debug main.go
+RUN go mod vendor && \
+    go build -o server main.go && \
 
 # Multi-Stage production build
-FROM golang:1.21.3@sha256:4d5cf6cb9269c5867ccf86b8282897b7eb4764d9739b1a19d8cc68643bbc3f3c as deploy
+FROM registry.access.redhat.com/ubi9/go-toolset@sha256:c3a9c5c7fb226f6efcec2424dd30c38f652156040b490c9eca5ac5b61d8dc3ca as deploy
 
 # Retrieve the binary from the previous stage
 COPY --from=builder /opt/app-root/src/server /usr/local/bin/fulcio-server
 # Set the binary as the entrypoint of the container
 ENTRYPOINT ["/usr/local/bin/fulcio-server", "serve"]
-
-# debug compile options & debugger
-FROM deploy as debug
-RUN go install github.com/go-delve/delve/cmd/dlv@v1.8.0
-
-# overwrite server and include debugger
-COPY --from=builder /opt/app-root/src/server_debug /usr/local/bin/fulcio-server
