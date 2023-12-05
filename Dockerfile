@@ -22,8 +22,8 @@ ADD go.mod go.sum $APP_ROOT/src/
 # Add source code
 ADD ./ $APP_ROOT/src/
 
-RUN go mod vendor && \
-    go build -o server main.go && \
+RUN go mod download && \
+    go build -mod=readonly -o server main.go
 
 # Multi-Stage production build
 FROM registry.access.redhat.com/ubi9/go-toolset@sha256:c3a9c5c7fb226f6efcec2424dd30c38f652156040b490c9eca5ac5b61d8dc3ca as deploy
