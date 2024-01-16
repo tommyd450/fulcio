@@ -388,7 +388,7 @@ spec:
         - name: name
           value: go-unit-test
         - name: bundle
-          value: quay.io/securesign/fulcio-unit-test:latest
+          value: quay.io/securesign/fulcio-unit-test@sha256:d2ea8cf5e49ffa3000398e6b8f9003647aea35867bb5af486ff2dfe60841db2c
         - name: kind
           value: task
         resolver: bundles
