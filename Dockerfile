@@ -28,6 +28,13 @@ RUN go mod download && \
 # Multi-Stage production build
 FROM registry.access.redhat.com/ubi9/go-toolset@sha256:f5001c30e7ee626d87ca3cbf5606f401e637ecd50aa12023862a9119ede9ffb9 as deploy
 
+LABEL description="Fulcio is a free-to-use certificate authority for issuing code signing certificates for an OpenID Connect (OIDC) identity, such as email address."
+LABEL io.k8s.description="Fulcio is a free-to-use certificate authority for issuing code signing certificates for an OpenID Connect (OIDC) identity, such as email address."
+LABEL io.k8s.display-name="Fulcio container image for Red Hat Trusted Signer"
+LABEL io.openshift.tags="fulcio trusted-signer"
+LABEL summary="Provides the Fulcio CA for keyless signing with Red Hat Trusted Signer."
+LABEL com.redhat.component="fulcio"
+
 # Retrieve the binary from the previous stage
 COPY --from=builder /opt/app-root/src/server /usr/local/bin/fulcio-server
 # Set the binary as the entrypoint of the container
