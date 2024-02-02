@@ -39,3 +39,4 @@ LABEL com.redhat.component="fulcio"
 COPY --from=builder /opt/app-root/src/server /usr/local/bin/fulcio-server
 # Set the binary as the entrypoint of the container
 ENTRYPOINT ["/usr/local/bin/fulcio-server", "serve"]
+#
