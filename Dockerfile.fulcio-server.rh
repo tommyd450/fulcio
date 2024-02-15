@@ -13,31 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM golang:1.21.6@sha256:7b575fe0d9c2e01553b04d9de8ffea6d35ca3ab3380d2a8db2acc8f0f1519a53 AS builder
+FROM registry.access.redhat.com/ubi9/go-toolset@sha256:330c52d81d5bde432fb59c4943fcb5143940ceb460f99c1ac8e0a9ea1f8f77e8 AS builder
 ENV APP_ROOT=/opt/app-root
 ENV GOPATH=$APP_ROOT
 
 WORKDIR $APP_ROOT/src/
 ADD go.mod go.sum $APP_ROOT/src/
-RUN go mod download
-
 # Add source code
 ADD ./ $APP_ROOT/src/
 
-RUN go build -o server main.go
-RUN CGO_ENABLED=1 go build -gcflags "all=-N -l" -o server_debug main.go
+RUN go mod download && \
+    go build -mod=readonly -o server main.go
 
 # Multi-Stage production build
-FROM golang:1.21.6@sha256:7b575fe0d9c2e01553b04d9de8ffea6d35ca3ab3380d2a8db2acc8f0f1519a53 as deploy
+FROM registry.access.redhat.com/ubi9/go-toolset@sha256:330c52d81d5bde432fb59c4943fcb5143940ceb460f99c1ac8e0a9ea1f8f77e8 as deploy
+
+LABEL description="Fulcio is a free-to-use certificate authority for issuing code signing certificates for an OpenID Connect (OIDC) identity, such as email address."
+LABEL io.k8s.description="Fulcio is a free-to-use certificate authority for issuing code signing certificates for an OpenID Connect (OIDC) identity, such as email address."
+LABEL io.k8s.display-name="Fulcio container image for Red Hat Trusted Signer"
+LABEL io.openshift.tags="fulcio trusted-signer"
+LABEL summary="Provides the Fulcio CA for keyless signing with Red Hat Trusted Signer."
+LABEL com.redhat.component="fulcio"
 
 # Retrieve the binary from the previous stage
 COPY --from=builder /opt/app-root/src/server /usr/local/bin/fulcio-server
 # Set the binary as the entrypoint of the container
 ENTRYPOINT ["/usr/local/bin/fulcio-server", "serve"]
-
-# debug compile options & debugger
-FROM deploy as debug
-RUN go install github.com/go-delve/delve/cmd/dlv@v1.22.0
-
-# overwrite server and include debugger
-COPY --from=builder /opt/app-root/src/server_debug /usr/local/bin/fulcio-server
