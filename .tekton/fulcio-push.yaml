@@ -27,10 +27,10 @@ spec:
     value: .
   - name: revision
     value: '{{revision}}'
-  - name: prefetch-input
-    value: '{"type": "gomod", "path": "."}'
-  - name: hermetic
-    value: "true"
+  # - name: prefetch-input
+  #   value: '{"type": "gomod", "path": "."}'
+  # - name: hermetic
+  #   value: "true"
   - name: build-source-image
     value: "true"
   pipelineSpec:
@@ -382,7 +382,7 @@ spec:
         - name: name
           value: go-unit-test
         - name: bundle
-          value: quay.io/securesign/fulcio-unit-test@sha256:d2ea8cf5e49ffa3000398e6b8f9003647aea35867bb5af486ff2dfe60841db2c
+          value: quay.io/securesign/fulcio-unit-test@sha256:8a8de79c1313af5e8cd760367f1a83421d76a7ce6fb7cf08efcf98cb65ef62f9
         - name: kind
           value: task
         resolver: bundles
@@ -394,6 +394,12 @@ spec:
     - name: git-auth
       optional: true
   taskRunTemplate: {}
+  taskRunSpecs:
+    - pipelineTaskName: run-unit-test
+      serviceAccountName: appstudio-pipeline
+      podTemplate:
+        imagePullSecrets:
+          - name: brew-registry-pull-secret
   workspaces:
   - name: workspace
     volumeClaimTemplate:
